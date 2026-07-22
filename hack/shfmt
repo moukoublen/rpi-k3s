@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+if ! command -v shfmt &>/dev/null; then
+  echo 'shfmt not found' >&2
+  exit 1
+fi
+
+echo "shfmt path   : $(which shfmt)"
+echo "shfmt version: $(shfmt --version)"
+echo ""
+
+./hack/foreach-script shfmt \
+  --simplify \
+  --language-dialect auto \
+  --case-indent \
+  --indent 2 \
+  --write

@@ -1,0 +1,3 @@
+- hack/init-ansible
+- source ./.venv/bin/activate
+- cd ansible && ansible-playbook --inventory ./inventory.yaml init.yaml

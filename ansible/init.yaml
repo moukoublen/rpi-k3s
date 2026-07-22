@@ -1,0 +1,151 @@
+# ansible-playbook --inventory ./inventory.yaml init.yaml
+---
+- name: Init (user local)
+  hosts: all
+  become: false
+  tasks:
+    - name: Home config directory
+      ansible.builtin.file:
+        path: "/home/{{ ansible_facts['env']['USER'] }}/.config"
+        state: directory
+        owner: "{{ ansible_facts['env']['USER'] }}"
+        group: "{{ ansible_facts['env']['USER'] }}"
+        mode: "0751"
+    - name: Home bin directory
+      ansible.builtin.file:
+        path: "/home/{{ ansible_facts['env']['USER'] }}/bin"
+        state: directory
+        owner: "{{ ansible_facts['env']['USER'] }}"
+        group: "{{ ansible_facts['env']['USER'] }}"
+        mode: "0751"
+
+- name: Init (root)
+  hosts: all
+  become: true
+  become_user: root
+  become_method: ansible.builtin.sudo
+  tasks:
+    - name: Ports script
+      ansible.builtin.copy:
+        src: ./files/ports
+        dest: /usr/local/bin/ports
+        owner: root
+        group: root
+        mode: "0755"
+    - name: Thermals script
+      ansible.builtin.copy:
+        src: ./files/thermals
+        dest: /usr/local/bin/thermals
+        owner: root
+        group: root
+        mode: "0755"
+    - name: Bash aliases
+      ansible.builtin.copy:
+        src: ./files/aliases.sh
+        dest: /etc/profile.d/aliases.sh
+        owner: root
+        group: root
+        mode: "0644"
+    - name: Ensure /etc/sysctl.d/97-no-ipv6.conf
+      ansible.builtin.copy:
+        content: |
+          net.ipv6.conf.all.disable_ipv6 = 1
+          net.ipv6.conf.default.disable_ipv6 = 1
+          net.ipv6.conf.lo.disable_ipv6 = 1
+        dest: /etc/sysctl.d/97-no-ipv6.conf
+        owner: root
+        group: root
+        mode: '0644'
+    - name: Ensure ipv6.disable=1 is present in /boot/firmware/cmdline.txt
+      ansible.builtin.replace:
+        path: /boot/firmware/cmdline.txt
+        # This regex matches the entire line only if it does not contain "ipv6.disable=1"
+        regexp: '^(?!.*\bipv6\.disable=1\b)(.*)$'
+        # Append the parameter to the matched line
+        replace: '\1 ipv6.disable=1'
+    - name: Ensure bluetooth and wifi are disabled
+      ansible.builtin.lineinfile:
+        path: /boot/firmware/config.txt
+        insertafter: '^# /boot/firmware/overlays/README'
+        state: present
+        line: '{{ item }}'
+      with_items:
+        - dtoverlay=disable-wifi
+        - dtoverlay=disable-bt
+    - name: Ensure sshd config
+      ansible.builtin.copy:
+        content: |
+          Port 22
+          ListenAddress 0.0.0.0
+          #ListenAddress ::
+          AddressFamily inet
+          # Authentication:
+          LoginGraceTime 1m
+          #PermitRootLogin prohibit-password
+          StrictModes no
+          MaxAuthTries 12
+          MaxSessions 12
+          PubkeyAuthentication yes
+          PasswordAuthentication no
+          #Compression yes
+          #CompressionLevel 9
+        dest: /etc/ssh/sshd_config.d/90-custom.conf
+        owner: root
+        group: root
+        mode: "0644"
+      notify:
+        - Restart sshd service
+  handlers:
+    - name: Restart sshd service
+      ansible.builtin.systemd:
+        name: sshd
+        state: restarted
+
+- name: Clean up script and cron for apt
+  hosts: pies
+  become: true
+  become_user: root
+  become_method: ansible.builtin.sudo
+  tasks:
+    - name: Ensure apt-clean-uninstalled script exists
+      ansible.builtin.copy:
+        src: ./files/apt-clean-uninstalled
+        dest: /usr/local/bin/apt-clean-uninstalled
+        owner: root
+        group: root
+        mode: "0755"
+    - name: Cron job for apt clean-up
+      ansible.builtin.cron:
+        name: apt cleanup cronjob
+        special_time: "monthly"
+        user: root
+        job: "/usr/local/bin/apt-clean-uninstalled"
+        cron_file: apt-clean-job
+        state: present
+
+- name: K3S Requirements
+  hosts: pies
+  become: true
+  become_user: root
+  become_method: ansible.builtin.sudo
+  tasks:
+    - name: Ensure cgroup_enable=memory is present in /boot/firmware/cmdline.txt
+      ansible.builtin.replace:
+        path: /boot/firmware/cmdline.txt
+        regexp: '^(?!.*\bcgroup_enable=memory\b)(.*)$'
+        replace: '\1 cgroup_enable=memory'
+    - name: Ensure cgroup_memory=1 is present in /boot/firmware/cmdline.txt
+      ansible.builtin.replace:
+        path: /boot/firmware/cmdline.txt
+        regexp: '^(?!.*\bcgroup_memory=1\b)(.*)$'
+        replace: '\1 cgroup_memory=1'
+    - name: Read /boot/firmware/cmdline.txt
+      ansible.builtin.command:
+        cmd: cat /boot/firmware/cmdline.txt
+        strip_empty_ends: true
+      register: cmdline_output
+      changed_when: false
+    - name: Display /boot/firmware/cmdline.txt
+      ansible.builtin.debug:
+        var: cmdline_output.stdout_lines
+      changed_when: false

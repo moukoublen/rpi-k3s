@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+__ports() {
+  local target='--all'
+  if [[ ${1:-} == '-l' ]]; then
+    target='--listening'
+  fi
+  sudo ss --tcp --udp "${target}" --processes --numeric
+}
+
+__ports "${@}"
+
+# sudo ss --tcp --udp --all --processes --numeric
+# sudo ss --tcp --udp --listening --processes --numeric

@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+HOME_K3S_VENV_DIR="./.venv"
+
+mkdir -p "${HOME_K3S_VENV_DIR}"
+
+python3 -m venv --clear "${HOME_K3S_VENV_DIR}"
+source "${HOME_K3S_VENV_DIR}"/bin/activate
+pip install -U pip setuptools wheel
+pip install -U ansible-core ansible ansible-lint ansible-navigator
