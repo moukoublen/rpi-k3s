@@ -1,0 +1,30 @@
+# ansible-playbook --inventory ./inventory.yaml coredns.yaml
+---
+- name: DNS
+  hosts: all
+  become: true
+  become_user: root
+  become_method: ansible.builtin.sudo
+
+  tasks:
+
+    - name: Configure fixed DNS while retaining DHCP
+      community.general.nmcli:
+        conn_name: "Wired connection 1"
+        type: ethernet
+        method4: auto
+        dns4:
+          - 192.168.178.200
+        dns4_ignore_auto: true
+        method6: auto
+        dns6: []
+        dns6_ignore_auto: true
+        state: present
+      notify: Reactivate NetworkManager connection
+
+  handlers:
+
+    - name: Reactivate NetworkManager connection
+      ansible.builtin.command:
+        cmd: nmcli connection up "Wired connection 1"
+      changed_when: true

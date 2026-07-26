@@ -10,7 +10,7 @@
 
 ---
 - name: Configure Keepalived virtual IP
-  hosts: pies
+  hosts: virtual_ip_group
   become: true
   become_user: root
   become_method: ansible.builtin.sudo

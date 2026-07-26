@@ -1,0 +1,15 @@
+home.arpa {
+    hosts /etc/coredns/homelab.hosts
+    errors
+}
+
+. {
+    forward . tls://1.1.1.1 tls://1.0.0.1 {
+        tls_servername cloudflare-dns.com
+    }
+    cache
+    errors
+}
+
+# https://coredns.io/manual/configuration/
+# https://developers.cloudflare.com/1.1.1.1/encryption/dns-over-tls/

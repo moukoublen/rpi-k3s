@@ -9,11 +9,9 @@ all:
   hosts:
     pi51:
       ansible_host: 192.168.178.232
-      keepalived_priority: 200
 
     pi41:
       ansible_host: 192.168.178.233
-      keepalived_priority: 110
 
     pi42:
       ansible_host: 192.168.178.234
@@ -28,17 +26,15 @@ all:
       keepalived_priority: 140
 
   children:
-    pies:
+    pies4:
       hosts:
-        pi51: {}
         pi41: {}
         pi42: {}
         pi43: {}
         pi44: {}
 
-    pies4:
+    virtual_ip_group:
       hosts:
-        pi41: {}
         pi42: {}
         pi43: {}
         pi44: {}

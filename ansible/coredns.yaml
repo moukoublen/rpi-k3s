@@ -1,0 +1,85 @@
+# ansible-playbook --inventory ./inventory.yaml coredns.yaml
+
+# journalctl -u coredns -f
+
+---
+- name: CoreDNS
+  hosts: virtual_ip_group
+  become: true
+  become_user: root
+  become_method: ansible.builtin.sudo
+
+  tasks:
+
+    # https://github.com/coredns/coredns/releases
+    - name: Download and install CoreDNS
+      ansible.builtin.unarchive:
+        src: https://github.com/coredns/coredns/releases/download/v1.14.6/coredns_1.14.6_linux_arm64.tgz
+        dest: /usr/local/bin
+        remote_src: true
+        owner: root
+        group: root
+        mode: "0755"
+        creates: /usr/local/bin/coredns
+      notify: Restart CoreDNS
+
+    - name: Create CoreDNS system user
+      ansible.builtin.user:
+        name: coredns
+        system: true
+        create_home: false
+        shell: /usr/sbin/nologin
+        state: present
+
+    - name: Create CoreDNS configuration directory
+      ansible.builtin.file:
+        path: /etc/coredns
+        state: directory
+        owner: root
+        group: coredns
+        mode: "0750"
+
+    - name: Copy CoreDNS configuration file
+      ansible.builtin.copy:
+        src: files/coredns/Corefile
+        dest: /etc/coredns/Corefile
+        owner: root
+        group: coredns
+        mode: "0640"
+      notify: Restart CoreDNS
+    - name: Copy CoreDNS homelab hosts file
+      ansible.builtin.copy:
+        src: files/coredns/homelab.hosts
+        dest: /etc/coredns/homelab.hosts
+        owner: root
+        group: coredns
+        mode: "0640"
+      notify: Restart CoreDNS
+
+    - name: Install CoreDNS systemd service
+      ansible.builtin.copy:
+        src: files/coredns/coredns.service
+        dest: /etc/systemd/system/coredns.service
+        owner: root
+        group: root
+        mode: "0644"
+      notify:
+        - Reload systemd
+        - Restart CoreDNS
+
+    - name: Enable and start CoreDNS
+      ansible.builtin.systemd_service:
+        name: coredns
+        enabled: true
+        state: started
+        daemon_reload: true
+
+  handlers:
+    - name: Reload systemd
+      ansible.builtin.systemd_service:
+        daemon_reload: true
+
+    - name: Restart CoreDNS
+      ansible.builtin.systemd_service:
+        name: coredns
+        state: restarted

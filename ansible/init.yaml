@@ -118,7 +118,7 @@
         replace: '\1 ipv6.disable=1'
 
 - name: Clean up script and cron for apt
-  hosts: pies
+  hosts: all
   become: true
   become_user: root
   become_method: ansible.builtin.sudo
@@ -140,7 +140,7 @@
         state: present
 
 - name: K3S Requirements
-  hosts: pies
+  hosts: all
   become: true
   become_user: root
   become_method: ansible.builtin.sudo

@@ -1,5 +1,5 @@
 - name: Rolling restart
-  hosts: pies
+  hosts: all
   become: true
   become_user: root
   become_method: ansible.builtin.sudo
