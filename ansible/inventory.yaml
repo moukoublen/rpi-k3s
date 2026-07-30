@@ -1,43 +1,43 @@
-
 # ansible-inventory -i inventory.yaml -y --list
 # https://docs.ansible.com/ansible/latest/inventory_guide/intro_inventory.html
 # https://docs.ansible.com/ansible-core/2.18/reference_appendices/interpreter_discovery.html
 
+# pencilvester 192.168.178.231
+# virtual ip   192.168.178.200
+
 all:
   hosts:
-    pi41:
-      ansible_connection: ssh
-      ansible_python_interpreter: /usr/bin/python3.13
-      ansible_user: admin
-    pi42:
-      ansible_connection: ssh
-      ansible_python_interpreter: /usr/bin/python3.13
-      ansible_user: admin
-    pi43:
-      ansible_connection: ssh
-      ansible_python_interpreter: /usr/bin/python3.13
-      ansible_user: admin
-    pi44:
-      ansible_connection: ssh
-      ansible_python_interpreter: /usr/bin/python3.13
-      ansible_user: admin
     pi51:
-      ansible_connection: ssh
-      ansible_python_interpreter: /usr/bin/python3.13
-      ansible_user: admin
+      ansible_host: 192.168.178.232
+      keepalived_priority: 100
+
+    pi41:
+      ansible_host: 192.168.178.233
+      keepalived_priority: 110
+
+    pi42:
+      ansible_host: 192.168.178.234
+      keepalived_priority: 120
+
+    pi43:
+      ansible_host: 192.168.178.235
+      keepalived_priority: 130
+
+    pi44:
+      ansible_host: 192.168.178.236
+      keepalived_priority: 140
+
+
 
   children:
     pies:
       hosts:
-        pi31: {}
+        pi51: {}
         pi41: {}
         pi42: {}
         pi43: {}
         pi44: {}
-        pi51: {}
-    ubuntu_pies:
-      hosts:
-        pi44: {}
+
     pies4:
       hosts:
         pi41: {}
@@ -45,9 +45,10 @@ all:
         pi43: {}
         pi44: {}
 
-
-  # Global variables
   vars:
-    ansible_ssh_private_key_file: "~/.ssh/home_admin"
+    ansible_user: admin
+    ansible_connection: ssh
+    ansible_python_interpreter: /usr/bin/python3
+    ansible_private_key_file: "~/.ssh/home_admin"
     ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
     ntp_server: "pool.ntp.org"

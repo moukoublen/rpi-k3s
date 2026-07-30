@@ -1,0 +1,42 @@
+---
+- name: Configure Keepalived virtual IP
+  hosts: pies
+  become: true
+  become_user: root
+  become_method: ansible.builtin.sudo
+
+  vars:
+    keepalived_interface: eth0
+    keepalived_virtual_ip: 192.168.178.200
+    keepalived_prefix_length: 24
+    keepalived_virtual_router_id: 42
+
+  tasks:
+    - name: Install Keepalived
+      ansible.builtin.apt:
+        name: keepalived
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Create Keepalived configuration
+      ansible.builtin.template:
+        src: files/keepalived.conf.j2
+        dest: /etc/keepalived/keepalived.conf
+        owner: root
+        group: root
+        mode: "0644"
+        validate: "keepalived --config-test --use-file=%s"
+      notify: Restart Keepalived
+
+    - name: Enable and start Keepalived
+      ansible.builtin.systemd:
+        name: keepalived
+        enabled: true
+        state: started
+
+  handlers:
+    - name: Restart Keepalived
+      ansible.builtin.systemd:
+        name: keepalived
+        state: restarted

@@ -1,0 +1,15 @@
+- name: Rolling restart
+  hosts: pies
+  become: true
+  become_user: root
+  become_method: ansible.builtin.sudo
+  serial: 1
+  tasks:
+    - name: Reboot
+      ansible.builtin.reboot:
+        msg: "Reboot initiated by Ansible"
+        connect_timeout: 5
+        reboot_timeout: 300
+        pre_reboot_delay: 0
+        post_reboot_delay: 30
+        test_command: uptime

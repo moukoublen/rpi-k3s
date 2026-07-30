@@ -1,0 +1,6 @@
+# 174c:235c ASMedia Technology Inc. Ugreen Storage Device  -  M2 SSD case
+ACTION=="add|change", ATTRS{idVendor}=="174c", ATTRS{idProduct}=="235c", SUBSYSTEM=="scsi_disk", ATTR{provisioning_mode}="unmap"
+
+# Bus 002 Device 002: ID 174c:1153 ASMedia Technology Inc. ASM1153 SATA 3Gb/s bridge
+# 174c:1153 ASMedia Technology Inc. ASM1153 SATA 3Gb/s bridge  -  Ugreen USB 3.0 to 3.5-inch SATA External Hard Drive Enclosure (50422)
+ACTION=="add|change", ATTRS{idVendor}=="174c", ATTRS{idProduct}=="1153", SUBSYSTEM=="scsi_disk", ATTR{provisioning_mode}="unmap"

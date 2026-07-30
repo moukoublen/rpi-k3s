@@ -1,24 +1,13 @@
 ---
-- name: Debug as root
+- name: Debug
   hosts: all
   become: true
   become_user: root
   become_method: ansible.builtin.sudo
   tasks:
-    - name: Facts ansible_facts as root
+    - name: Debug ansible_facts
       ansible.builtin.debug:
         var: ansible_facts
-    - name: Hostvars as root
+    - name: Debug hostvars
       ansible.builtin.debug:
         var: hostvars
-
-- name: Debug as user
-  hosts: all
-  become: false
-  tasks:
-    - name: Hostvars as user
-      ansible.builtin.debug:
-        var: hostvars
-    - name: Groups
-      ansible.builtin.debug:
-        var: groups

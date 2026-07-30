@@ -1,0 +1,26 @@
+global_defs {
+    router_id {{ inventory_hostname | upper | replace('-', '_') }}
+}
+
+vrrp_instance VI_CLUSTER {
+    state BACKUP
+    interface {{ keepalived_interface }}
+
+    virtual_router_id {{ keepalived_virtual_router_id }}
+    priority {{ keepalived_priority }}
+    advert_int 1
+
+    unicast_src_ip {{ ansible_facts[keepalived_interface]['ipv4']['address'] }}
+
+    unicast_peer {
+{% for node in groups['pies'] %}
+{% if node != inventory_hostname %}
+        {{ hostvars[node]['ansible_facts'][keepalived_interface]['ipv4']['address'] }}
+{% endif %}
+{% endfor %}
+    }
+
+    virtual_ipaddress {
+        {{ keepalived_virtual_ip }}/{{ keepalived_prefix_length }} dev {{ keepalived_interface }}
+    }
+}
