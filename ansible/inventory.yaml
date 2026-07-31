@@ -2,14 +2,14 @@
 # https://docs.ansible.com/ansible/latest/inventory_guide/intro_inventory.html
 # https://docs.ansible.com/ansible-core/2.18/reference_appendices/interpreter_discovery.html
 
-# pencilvester 192.168.178.231
 # virtual ip   192.168.178.200
+# pencilvester 192.168.178.231
 
 all:
   hosts:
     pi51:
       ansible_host: 192.168.178.232
-      keepalived_priority: 100
+      keepalived_priority: 200
 
     pi41:
       ansible_host: 192.168.178.233
@@ -26,8 +26,6 @@ all:
     pi44:
       ansible_host: 192.168.178.236
       keepalived_priority: 140
-
-
 
   children:
     pies:
@@ -52,3 +50,6 @@ all:
     ansible_private_key_file: "~/.ssh/home_admin"
     ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
     ntp_server: "pool.ntp.org"
+    keepalived_interface: eth0
+    keepalived_virtual_ip: 192.168.178.200
+    keepalived_prefix_length: 24

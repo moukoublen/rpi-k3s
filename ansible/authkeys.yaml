@@ -1,0 +1,19 @@
+---
+- name: SSH authorized keys
+  hosts: pies
+  become: true
+  become_user: root
+  become_method: ansible.builtin.sudo
+
+  tasks:
+    - name: Authorized key home_admin to admin user
+      ansible.posix.authorized_key:
+        user: admin
+        state: present
+        key: "{{ lookup('file', '/home/kostam/.ssh/home_admin.pub') }}"
+
+    - name: Authorized key fleeb to admin user
+      ansible.posix.authorized_key:
+        user: admin
+        state: present
+        key: "{{ lookup('file', '/home/kostam/.ssh/fleeb.pub') }}"

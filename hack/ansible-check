@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+set -uo pipefail
+
+ansible_dir="${1:-ansible}"
+inventory_file="${ansible_dir}/inventory.yaml"
+status=0
+
+if ! command -v ansible-playbook &>/dev/null; then
+  echo "ansible-playbook not found" >&2
+  exit 1
+fi
+
+if ! command -v ansible-lint &>/dev/null; then
+  echo "ansible-lint not found" >&2
+  exit 1
+fi
+
+mapfile -d '' -t yaml_files < <(
+  find "${ansible_dir}" \
+    -maxdepth 1 \
+    -type f \
+    \( -name '*.yaml' -o -name '*.yml' \) \
+    -print0 | sort -z
+)
+
+if ((${#yaml_files[@]} == 0)); then
+  echo "No YAML files found in ${ansible_dir}" >&2
+  exit 1
+fi
+
+for file in "${yaml_files[@]}"; do
+  echo "ansible-lint ${file}"
+  ansible-lint "${file}" || status=1
+
+  if [[ "${file}" == "${inventory_file}" ]]; then
+    echo "ansible-playbook --syntax-check ${file} (skipped: inventory, not a playbook)"
+    continue
+  fi
+
+  echo "ansible-playbook --syntax-check ${file}"
+  ansible-playbook -i ansible/inventory.yaml --syntax-check "${file}" || status=1
+done
+
+exit "${status}"

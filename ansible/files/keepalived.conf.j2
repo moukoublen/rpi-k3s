@@ -3,14 +3,22 @@ global_defs {
 }
 
 vrrp_instance VI_CLUSTER {
+    # Start as a backup candidate, avoid relying on a statically designated master. The election is determined by priority.
     state BACKUP
     interface {{ keepalived_interface }}
 
     virtual_router_id {{ keepalived_virtual_router_id }}
     priority {{ keepalived_priority }}
+
+    # Current VRRP master sends an advertisement every 1 second to the other Keepalived nodes.
     advert_int 1
 
+{% if keepalived_vrrp_type == "unicast" %}
     unicast_src_ip {{ ansible_facts[keepalived_interface]['ipv4']['address'] }}
+    # Put this instance into a fault state if `address` disappears.
+    track_src_ip
+    # Reject VRRP advertisements from addresses not listed as peers
+    check_unicast_src
 
     unicast_peer {
 {% for node in groups['pies'] %}
@@ -19,6 +27,13 @@ vrrp_instance VI_CLUSTER {
 {% endif %}
 {% endfor %}
     }
+{% endif %}
+
+{% if keepalived_vrrp_type == "multicast" %}
+    mcast_src_ip {{ ansible_facts[keepalived_interface]['ipv4']['address'] }}
+    # Put this instance into a fault state if `address` disappears.
+    track_src_ip
+{% endif %}
 
     virtual_ipaddress {
         {{ keepalived_virtual_ip }}/{{ keepalived_prefix_length }} dev {{ keepalived_interface }}

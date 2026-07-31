@@ -1,3 +1,13 @@
+# journalctl -u keepalived -f
+
+# sudo killall -USR1 keepalived   # dumps stats -> /tmp/keepalived.stats
+# sudo killall -USR2 keepalived   # dumps data (config+VRRP state) -> /tmp/keepalived.data
+# cat /tmp/keepalived.data
+# cat /tmp/keepalived.stats
+
+# sudo killall -SIGJSON keepalived   # -> /tmp/keepalived.json
+# cat /tmp/keepalived.json
+
 ---
 - name: Configure Keepalived virtual IP
   hosts: pies
@@ -6,18 +16,14 @@
   become_method: ansible.builtin.sudo
 
   vars:
-    keepalived_interface: eth0
-    keepalived_virtual_ip: 192.168.178.200
-    keepalived_prefix_length: 24
     keepalived_virtual_router_id: 42
+    keepalived_vrrp_type: multicast
 
   tasks:
     - name: Install Keepalived
       ansible.builtin.apt:
         name: keepalived
         state: present
-        update_cache: true
-        cache_valid_time: 3600
 
     - name: Create Keepalived configuration
       ansible.builtin.template:
