@@ -14,7 +14,7 @@
     # https://github.com/coredns/coredns/releases
     - name: Download and install CoreDNS
       ansible.builtin.unarchive:
-        src: https://github.com/coredns/coredns/releases/download/v1.14.6/coredns_1.14.6_linux_arm64.tgz
+        src: https://github.com/coredns/coredns/releases/download/v1.14.7/coredns_1.14.7_linux_arm64.tgz
         dest: /usr/local/bin
         remote_src: true
         owner: root
